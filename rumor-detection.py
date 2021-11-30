@@ -14,7 +14,6 @@ def bfs(adjs, root):
 
     while len(queue) > 0:
         v = queue.pop()
-        visited[v] = True
         children = adjs[v]
         T[v] = []
 
@@ -22,6 +21,7 @@ def bfs(adjs, root):
             if not visited.get(child, False):
                 T[v].append(child)
                 queue.appendleft(child)
+                visited[child] = True
     return T
 
 
@@ -82,7 +82,7 @@ def rumor_centrality(adjs, root):
 
 
 if __name__ == '__main__':
-    g = make_graph(10)
+    g = make_graph(100)
 
     max_i = 0
     max_r = 0
