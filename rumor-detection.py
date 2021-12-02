@@ -5,8 +5,10 @@ from collections import deque
 from graph_visualization import convert_to_nx_graph, plot_nx_graph, compute_node_degrees
 
 
-def make_graph(n):
-    return {i: random.sample(list(range(n)), random.randint(0, n)) for i in range(n)}
+def make_graph(n, max_edges=None):
+    if max_edges is None:
+        max_edges = n
+    return {i: random.sample(list(range(n)), random.randint(0, max_edges)) for i in range(n)}
 
 
 def bfs(adjs, root):
@@ -84,7 +86,7 @@ def rumor_centrality(adjs, root):
 
 
 if __name__ == '__main__':
-    g = make_graph(100)
+    g = make_graph(100, 8)
 
     nx_g = convert_to_nx_graph(g)
     n_markers, n_text = compute_node_degrees(nx_g)
