@@ -3,6 +3,8 @@ from networkx.generators.random_graphs import dense_gnm_random_graph
 from networkx.algorithms.distance_measures import center
 from networkx.algorithms.centrality import betweenness_centrality, closeness_centrality
 
+from graph_visualization import plot_nx_graph
+
 
 def random_graph(n, m, seed=None) -> networkx.Graph:
     return dense_gnm_random_graph(n, m, seed)
@@ -25,9 +27,11 @@ def centers_by_distance_centrality(g):
 
 
 def main():
-    nodes = 100
-    edges = 200
+    nodes = 200
+    edges = 300
     g = random_graph(nodes, edges)
+
+    plot_nx_graph(g)
 
     print("centers_by_jordan_center")
     print(centers_by_jordan_center(g))
