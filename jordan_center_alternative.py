@@ -27,10 +27,10 @@ def centers_by_distance_centrality(g):
 
 
 def main():
-    nodes = 200
-    edges = 300
-    g = random_graph(nodes, edges)
-
+    # nodes = 200
+    # edges = 300
+    # g = random_graph(nodes, edges)
+    g = networkx.karate_club_graph()
     plot_nx_graph(g)
 
     print("centers_by_jordan_center")
