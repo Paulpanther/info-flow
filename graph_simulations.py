@@ -5,6 +5,7 @@ from ndlib.models import ModelConfig
 from ndlib.models.epidemics import SIModel, SISModel, SIRModel, SEIRModel, SEIRctModel, SEISModel, SEISctModel
 
 import graph_generator
+from rumor_detection_x import find_rumor_center
 
 
 def si(graph: nx.Graph, iterations: int, infection_prob: float, infections_centers: int) -> (nx.Graph, List[int]):
@@ -80,10 +81,7 @@ def _run_model(Model, graph: nx.Graph, iterations: int, allowed_states: List[int
         if status not in allowed_states:
             graph.remove_node(node)
 
-    if len(initial_infected) == 1:
-        return nx.bfs_tree(graph, initial_infected[0]), initial_infected
-    else:
-        return graph, initial_infected
+    return graph, initial_infected
 
 
 if __name__ == '__main__':
@@ -91,3 +89,5 @@ if __name__ == '__main__':
     print(graph.nodes)
     print(nx.is_tree(graph))
     print(init_nodes)
+    rumour_center = find_rumor_center(graph)
+    print(rumour_center == init_nodes[0])
