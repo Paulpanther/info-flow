@@ -7,27 +7,27 @@ from ndlib.models.epidemics import SIModel, SISModel, SIRModel, SEIRModel, SEIRc
 import graph_generator
 
 
-def si(graph: nx.Graph, iterations: int, infection_prob: float, infections_centers: int) -> nx.Graph:
+def si(graph: nx.Graph, iterations: int, infection_prob: float, infections_centers: int) -> (nx.Graph, List[int]):
     return _run_model(SIModel, graph, iterations, [1],
                       ("beta", infection_prob),
                       ("fraction_infected", infections_centers / graph.number_of_nodes()))
 
 
-def sis(graph: nx.Graph, iterations: int, infection_prob: float, recovery_prob: float, infections_centers: int) -> nx.Graph:
+def sis(graph: nx.Graph, iterations: int, infection_prob: float, recovery_prob: float, infections_centers: int) -> (nx.Graph, List[int]):
     return _run_model(SISModel, graph, iterations, [1],
                       ("beta", infection_prob),
                       ("lambda", recovery_prob),
                       ("fraction_infected", infections_centers / graph.number_of_nodes()))
 
 
-def sir(graph: nx.Graph, iterations: int, infection_prob: float, removal_prob: float, infections_centers: int) -> nx.Graph:
+def sir(graph: nx.Graph, iterations: int, infection_prob: float, removal_prob: float, infections_centers: int) -> (nx.Graph, List[int]):
     return _run_model(SIRModel, graph, iterations, [1, 2],
                       ("beta", infection_prob),
                       ("gamma", removal_prob),
                       ("fraction_infected", infections_centers / graph.number_of_nodes()))
 
 
-def discrete_seir(graph: nx.Graph, iterations: int, infection_prob: float, latent_period: float, removal_prob: float, infections_centers: int) -> nx.Graph:
+def discrete_seir(graph: nx.Graph, iterations: int, infection_prob: float, latent_period: float, removal_prob: float, infections_centers: int) -> (nx.Graph, List[int]):
     return _run_model(SEIRModel, graph, iterations, [1, 3],
                       ("alpha", latent_period),
                       ("beta", infection_prob),
@@ -35,7 +35,7 @@ def discrete_seir(graph: nx.Graph, iterations: int, infection_prob: float, laten
                       ("fraction_infected", infections_centers / graph.number_of_nodes()))
 
 
-def continuous_seir(graph: nx.Graph, iterations: int, infection_prob: float, latent_period: float, removal_prob: float, infections_centers: int) -> nx.Graph:
+def continuous_seir(graph: nx.Graph, iterations: int, infection_prob: float, latent_period: float, removal_prob: float, infections_centers: int) -> (nx.Graph, List[int]):
     return _run_model(SEIRctModel, graph, iterations, [1, 3],
                       ("alpha", latent_period),
                       ("beta", infection_prob),
@@ -43,7 +43,7 @@ def continuous_seir(graph: nx.Graph, iterations: int, infection_prob: float, lat
                       ("fraction_infected", infections_centers / graph.number_of_nodes()))
 
 
-def discrete_seis(graph: nx.Graph, iterations: int, infection_prob: float, latent_period: float, recovery_prob: float, infections_centers: int) -> nx.Graph:
+def discrete_seis(graph: nx.Graph, iterations: int, infection_prob: float, latent_period: float, recovery_prob: float, infections_centers: int) -> (nx.Graph, List[int]):
     return _run_model(SEISModel, graph, iterations, [1],
                       ("alpha", latent_period),
                       ("beta", infection_prob),
@@ -51,7 +51,7 @@ def discrete_seis(graph: nx.Graph, iterations: int, infection_prob: float, laten
                       ("fraction_infected", infections_centers / graph.number_of_nodes()))
 
 
-def continous_seis(graph: nx.Graph, iterations: int, infection_prob: float, latent_period: float, recovery_prob: float, infections_centers: int) -> nx.Graph:
+def continous_seis(graph: nx.Graph, iterations: int, infection_prob: float, latent_period: float, recovery_prob: float, infections_centers: int) -> (nx.Graph, List[int]):
     return _run_model(SEISctModel, graph, iterations, [1],
                       ("alpha", latent_period),
                       ("beta", infection_prob),
@@ -59,9 +59,10 @@ def continous_seis(graph: nx.Graph, iterations: int, infection_prob: float, late
                       ("fraction_infected", infections_centers / graph.number_of_nodes()))
 
 
-def _run_model(Model, graph: nx.Graph, iterations: int, allowed_states: List[int], *config: (str, any)) -> nx.Graph:
+def _run_model(Model, graph: nx.Graph, iterations: int, allowed_states: List[int], *config: (str, any)) -> (nx.Graph, List[int]):
     """
-        Gets a graph, performs simulation of infections spread with given model and returns infection tree.
+        Gets a graph, performs simulation of infections spread with given model.
+        Returns infection tree and initial infected nodes.
         Graph is modified in-place
     """
     cfg = ModelConfig.Configuration()
@@ -70,14 +71,22 @@ def _run_model(Model, graph: nx.Graph, iterations: int, allowed_states: List[int
 
     model = Model(graph)
     model.set_initial_status(cfg)
+
+    initial_infected = [node for (node, status) in model.status.items() if status == 1]
+
     model.iteration_bunch(iterations, progress_bar=True)
 
     for node, status in model.status.items():
         if status not in allowed_states:
             graph.remove_node(node)
 
-    return graph
+    if len(initial_infected) == 1:
+        return nx.bfs_tree(graph, initial_infected[0]), initial_infected
+    else:
+        return graph, initial_infected
 
 
 if __name__ == '__main__':
-    print(continous_seis(graph_generator.complete(1000), 300, 0.2, 0.1, 0.1, 1).nodes)
+    graph, init_nodes = si(graph_generator.complete(1000), 2, 0.1, 1)
+    print(graph.nodes)
+    print(init_nodes)
