@@ -82,12 +82,3 @@ def _run_model(Model, graph: nx.Graph, iterations: int, allowed_states: List[int
             graph.remove_node(node)
 
     return graph, initial_infected
-
-
-if __name__ == '__main__':
-    graph, init_nodes = si(graph_generator.us_power_grid(), 20, 0.1, 1)
-    print(graph.nodes)
-    print(nx.is_tree(graph))
-    print(init_nodes)
-    rumour_center = find_rumor_center(graph)
-    print(rumour_center == init_nodes[0])

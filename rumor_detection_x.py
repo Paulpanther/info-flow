@@ -2,6 +2,9 @@ import math
 
 import networkx as nx
 
+import graph_generator
+import graph_simulations
+
 
 def rumor_centrality(tree: nx.Graph, root: int):
     t = {}
@@ -72,3 +75,10 @@ def find_rumor_center(g: nx.Graph) -> int:
     return max_i
 
 
+if __name__ == '__main__':
+    graph, init_nodes = graph_simulations.si(graph_generator.us_power_grid(), 20, 0.1, 1)
+    print(graph.nodes)
+    print(nx.is_tree(graph))
+    print(init_nodes)
+    rumour_center = find_rumor_center(graph)
+    print(rumour_center == init_nodes[0])
