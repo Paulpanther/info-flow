@@ -4,9 +4,6 @@ import networkx as nx
 from ndlib.models import ModelConfig
 from ndlib.models.epidemics import SIModel, SISModel, SIRModel, SEIRModel, SEIRctModel, SEISModel, SEISctModel
 
-import graph_generator
-from rumor_detection_x import find_rumor_center
-
 
 def si(graph: nx.Graph, iterations: int, infection_prob: float, infections_centers: int) -> (nx.Graph, List[int]):
     return _run_model(SIModel, graph, iterations, [1],

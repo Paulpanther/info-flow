@@ -1,9 +1,11 @@
 import math
+from typing import List
 
 import networkx as nx
 
 import graph_generator
 import graph_simulations
+from graph_visualization import plot_nx_graph
 
 
 def rumor_centrality(tree: nx.Graph, root: int):
@@ -12,7 +14,10 @@ def rumor_centrality(tree: nx.Graph, root: int):
     r = {}
     visited = {}
 
-    n = tree.size()
+    n = len(tree.nodes)
+
+    if n <= 1:
+        return 0
 
     def dfs_up(parent, v):
         children = [c for c in tree.neighbors(v) if c != parent]
@@ -75,10 +80,16 @@ def find_rumor_center(g: nx.Graph) -> int:
     return max_i
 
 
+def rumor_values(g: nx.Graph) -> List[float]:
+    return [rumor_centrality(nx.bfs_tree(g, v), v) for v in g.nodes]
+
+
 if __name__ == '__main__':
-    graph, init_nodes = graph_simulations.si(graph_generator.us_power_grid(), 20, 0.1, 1)
+    graph, init_nodes = graph_simulations.si(graph_generator.synthetic_internet(100), 10, 0.5, 1)
     print(graph.nodes)
     print(nx.is_tree(graph))
     print(init_nodes)
-    rumour_center = find_rumor_center(graph)
-    print(rumour_center == init_nodes[0])
+    rumor_v = rumor_values(graph)
+    print(rumor_v)
+    sizes = [50 if v in init_nodes else 20 for v in graph.nodes]
+    plot_nx_graph(graph, rumor_v, rumor_v, sizes)

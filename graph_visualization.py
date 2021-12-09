@@ -28,7 +28,7 @@ def compute_node_degrees(G):
     return node_adjacencies, node_text
 
 
-def plot_nx_graph(G, node_marker=None, node_text=None):
+def plot_nx_graph(G, node_marker=None, node_text=None, node_size=None):
     import plotly.graph_objects as go
 
     edge_x = []
@@ -77,7 +77,7 @@ def plot_nx_graph(G, node_marker=None, node_text=None):
             colorscale='YlGnBu',
             reversescale=True,
             color=[],
-            size=10,
+            size=node_size,
             colorbar=dict(
                 thickness=15,
                 title='Node Connections',
