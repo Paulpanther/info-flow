@@ -1,14 +1,17 @@
 import math
+import time
 from typing import List
 
 import networkx as nx
+import numpy as np
+from tqdm import tqdm
 
 import graph_generator
 import graph_simulations
 from graph_visualization import plot_nx_graph
 
 
-def rumor_centrality(tree: nx.Graph, root: int):
+def rumor_centrality(tree: nx.Graph, root: int, use_fact=False):
     t = {}
     p = {}
     r = {}
@@ -50,7 +53,10 @@ def rumor_centrality(tree: nx.Graph, root: int):
 
     dfs_up(None, root)
 
-    r[root] = math.factorial(n - 1) / (p[root] / t[root])
+    if use_fact:
+        r[root] = math.factorial(n - 1) / (p[root] / t[root])
+    else:
+        r[root] = t[root] / p[root]
     for vis in visited:
         visited[vis] = False
 
@@ -69,6 +75,7 @@ def rumor_centrality(tree: nx.Graph, root: int):
 def find_rumor_center(g: nx.Graph) -> int:
     max_i = 0
     max_r = 0
+    # for v in tqdm(g.nodes, desc="Rumor Centrality"):
     for v in g.nodes:
         T = nx.bfs_tree(g, v)
         r = rumor_centrality(T, v)
@@ -80,16 +87,52 @@ def find_rumor_center(g: nx.Graph) -> int:
     return max_i
 
 
-def rumor_values(g: nx.Graph) -> List[float]:
-    return [rumor_centrality(nx.bfs_tree(g, v), v) for v in g.nodes]
+def rumor_values(g: nx.Graph, use_fact=False) -> List[float]:
+    return [rumor_centrality(nx.bfs_tree(g, v), v, use_fact) for v in tqdm(g.nodes, desc="Rumor Centrality per Node")]
+
+
+def run(n, generator):
+    durations = {}
+    successes = {}
+    for i in range(0, n):
+        graph, init_nodes = graph_simulations.si(generator(i), 100, 0.5, 1)
+        time_start = time.time()
+
+        rumor_v = find_rumor_center(graph)
+
+        duration = time.time() - time_start
+        success = rumor_v == init_nodes[0]
+        nodes = len(graph.nodes)
+
+        if nodes not in durations:
+            durations[nodes] = []
+        durations[nodes].append(duration)
+
+        if nodes not in successes:
+            successes[nodes] = []
+        successes[nodes].append(success)
+    return durations, successes
 
 
 if __name__ == '__main__':
-    graph, init_nodes = graph_simulations.si(graph_generator.synthetic_internet(100), 10, 0.5, 1)
-    print(graph.nodes)
-    print(nx.is_tree(graph))
-    print(init_nodes)
-    rumor_v = rumor_values(graph)
-    print(rumor_v)
-    sizes = [50 if v in init_nodes else 20 for v in graph.nodes]
-    plot_nx_graph(graph, rumor_v, rumor_v, sizes)
+    g = nx.Graph()
+    g.add_node(0)  # A
+    g.add_node(1)  # B
+    g.add_node(2)  # F
+    g.add_node(3)  # G
+    g.add_node(4)  # H
+    g.add_node(5)  # J
+    g.add_edge(0, 1)
+    g.add_edge(0, 3)
+    g.add_edge(0, 4)
+    g.add_edge(0, 2)
+    g.add_edge(1, 4)
+    g.add_edge(1, 4)
+    # print("Scale free")
+    # n = 10
+    # durations, successes = run(n, lambda i: graph_generator.scale_free(i))
+    # import plotly.express as px
+    # fig = px.scatter(x=list(range(0, n)), y=lambda i: sum(durations[i]))
+    # fig.show()
+
+

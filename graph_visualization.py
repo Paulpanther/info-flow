@@ -1,4 +1,5 @@
 from typing import Dict, List
+import pandas
 
 import networkx as nx
 
