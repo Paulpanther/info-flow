@@ -2,6 +2,5 @@ networkx~=2.6.3
 ndlib~=5.1.1
 igraph~=0.9.8
 six
-plotly
 
 numpy~=1.21.4

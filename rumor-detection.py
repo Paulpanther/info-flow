@@ -1,22 +1,32 @@
+"""Rumor Centrality Score - Implemented from scratch"""
+from typing import Dict, List
+
+import networkx
 import math
-import random
 from collections import deque
 
-from graph_visualization import convert_to_nx_graph, plot_nx_graph, compute_node_degrees
+from graph_visualization import plot_nx_graph, compute_node_degrees
+from graph_generator import scale_free
 
 
-def make_graph(n):
-    return {i: random.sample(list(range(n)), random.randint(0, n)) for i in range(n)}
+def networkx_graph_to_adj_list(g: networkx.Graph) -> Dict[int, List[int]]:
+    """Transforms a networkx graph to an adj list dict node -> node list"""
+    adj_list = {}
+    for line in networkx.generate_adjlist(g):
+        node, *edges = line.split(" ")
+        adj_list[node] = edges
+    return adj_list
 
 
-def bfs(adjs, root):
+def get_bfs_tree(adj_list, root) -> Dict[int, List[int]]:
+    """Build a bfs tree from root"""
     queue = deque([root])
     visited = {root: True}
     T = {}
 
     while len(queue) > 0:
         v = queue.pop()
-        children = adjs[v]
+        children = adj_list[v]
         T[v] = []
 
         for child in children:
@@ -27,16 +37,19 @@ def bfs(adjs, root):
     return T
 
 
-def rumor_centrality(adjs, root):
+def rumor_centrality(adj_list, root):
+    """Calculates the rumor centrality for root on the graph given by adj_list"""
     t = {}
     p = {}
     r = {}
     visited = {}
 
-    n = len(adjs)
+    bfs_tree_adj_list = get_bfs_tree(adj_list, root)
+
+    n = len(bfs_tree_adj_list)
 
     def dfs_up(v):
-        children = adjs[v]
+        children = bfs_tree_adj_list[v]
         visited[v] = True
 
         if len(children) == 0:
@@ -55,9 +68,8 @@ def rumor_centrality(adjs, root):
         t[v] = current_t
         p[v] = current_t * current_p
 
-
     def dfs_down(v):
-        children = adjs[v]
+        children = bfs_tree_adj_list[v]
         visited[v] = True
 
         for child in children:
@@ -73,31 +85,27 @@ def rumor_centrality(adjs, root):
 
     dfs_down(root)
 
-    # current_max_e = root
-    # for v in adjs:
-    #     if r[v] > r[current_max_e]:
-    #         current_max_e = v
-    #
-    # return current_max_e, r[current_max_e]
-
     return r[root]
 
 
-if __name__ == '__main__':
-    g = make_graph(100)
+def main():
 
-    nx_g = convert_to_nx_graph(g)
+    nx_g = scale_free(100)
+
     n_markers, n_text = compute_node_degrees(nx_g)
     plot_nx_graph(nx_g, n_markers, n_text)
 
+    adj_list = networkx_graph_to_adj_list(nx_g)
+
+    # We could save a lot of lines here by using a map and a max
+    # at the additional cost of O(n)
     rs = []
     labels = []
 
     max_i = 0
     max_r = 0
-    for v in g:
-        T = bfs(g, v)
-        r = rumor_centrality(T, v)
+    for v in adj_list:
+        r = rumor_centrality(adj_list, v)
 
         rs.append(r)
         labels.append(f"rumor centrality score for {v}: {r}")
@@ -110,4 +118,5 @@ if __name__ == '__main__':
     plot_nx_graph(nx_g, rs, labels)
 
 
-
+if __name__ == '__main__':
+    main()

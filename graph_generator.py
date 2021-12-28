@@ -1,3 +1,5 @@
+"""Utility to generate graphs and to load graphs from datasets"""
+
 import networkx as nx
 
 

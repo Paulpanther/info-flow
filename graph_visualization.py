@@ -1,17 +1,4 @@
-from typing import Dict, List
-import pandas
-
 import networkx as nx
-
-
-def convert_to_nx_graph(adjacency_list: Dict[int, List[int]]):
-    edge_list = []
-
-    for u in adjacency_list:
-        for v in adjacency_list[u]:
-            edge_list.append((u, v))
-
-    return nx.from_edgelist(edge_list)
 
 
 def generate_nx_graph():

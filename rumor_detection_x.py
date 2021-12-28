@@ -1,22 +1,24 @@
+"""Rumor Centrality Score - Implemented with networkx"""
+
 import math
 import time
 from typing import List
-
 import networkx as nx
-import numpy as np
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 import graph_generator
 import graph_simulations
-from graph_visualization import plot_nx_graph
 
 
-def rumor_centrality(tree: nx.Graph, root: int, use_fact=False):
+def rumor_centrality(graph: nx.Graph, root: int, use_fact=False):
+    """Calculates the rumor centrality for root on the graph given by adj_list"""
     t = {}
     p = {}
     r = {}
     visited = {}
 
+    tree = nx.bfs_tree(graph, root)
     n = len(tree.nodes)
 
     if n <= 1:
@@ -62,23 +64,15 @@ def rumor_centrality(tree: nx.Graph, root: int, use_fact=False):
 
     dfs_down(None, root)
 
-    # current_max_e = root
-    # for v in adjs:
-    #     if r[v] > r[current_max_e]:
-    #         current_max_e = v
-    #
-    # return current_max_e, r[current_max_e]
-
     return r[root]
 
 
 def find_rumor_center(g: nx.Graph) -> int:
+    """Finds the node with the max. rumor centrality"""
     max_i = 0
     max_r = 0
-    # for v in tqdm(g.nodes, desc="Rumor Centrality"):
-    for v in g.nodes:
-        T = nx.bfs_tree(g, v)
-        r = rumor_centrality(T, v)
+    for v in tqdm(g.nodes, desc="Rumor Centrality"):
+        r = rumor_centrality(g, v)
 
         if r > max_r:
             max_r = r
@@ -88,51 +82,38 @@ def find_rumor_center(g: nx.Graph) -> int:
 
 
 def rumor_values(g: nx.Graph, use_fact=False) -> List[float]:
+    """Finds the rumor centrality for all nodes"""
     return [rumor_centrality(nx.bfs_tree(g, v), v, use_fact) for v in tqdm(g.nodes, desc="Rumor Centrality per Node")]
 
 
-def run(n, generator):
+def test_against_si(n, generator):
+    """Runs n tests of rumor centrality against the si model and measures runtime and success"""
     durations = {}
     successes = {}
-    for i in range(0, n):
-        graph, init_nodes = graph_simulations.si(generator(i), 100, 0.5, 1)
+    for node_count in range(0, n):
+        graph, init_nodes = graph_simulations.si(generator(node_count), 100, 0.5, 1)
         time_start = time.time()
 
         rumor_v = find_rumor_center(graph)
 
         duration = time.time() - time_start
         success = rumor_v == init_nodes[0]
-        nodes = len(graph.nodes)
 
-        if nodes not in durations:
-            durations[nodes] = []
-        durations[nodes].append(duration)
+        durations[node_count] = duration
+        successes[node_count] = success
 
-        if nodes not in successes:
-            successes[nodes] = []
-        successes[nodes].append(success)
     return durations, successes
 
 
+def main():
+    print("Scale free")
+    n = 10
+    durations, successes = test_against_si(n, lambda i: graph_generator.scale_free(i))
+    print(len(list(range(0, n))))
+    print(len(durations))
+    plt.scatter(x=list(range(0, n)), y=durations.keys())
+    plt.savefig("temp.png")
+
+
 if __name__ == '__main__':
-    g = nx.Graph()
-    g.add_node(0)  # A
-    g.add_node(1)  # B
-    g.add_node(2)  # F
-    g.add_node(3)  # G
-    g.add_node(4)  # H
-    g.add_node(5)  # J
-    g.add_edge(0, 1)
-    g.add_edge(0, 3)
-    g.add_edge(0, 4)
-    g.add_edge(0, 2)
-    g.add_edge(1, 4)
-    g.add_edge(1, 4)
-    # print("Scale free")
-    # n = 10
-    # durations, successes = run(n, lambda i: graph_generator.scale_free(i))
-    # import plotly.express as px
-    # fig = px.scatter(x=list(range(0, n)), y=lambda i: sum(durations[i]))
-    # fig.show()
-
-
+    main()
