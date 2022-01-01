@@ -74,7 +74,7 @@ def _run_model(Model, graph: nx.Graph, iterations: int, allowed_states: List[int
 
     initial_infected = [node for (node, status) in model.status.items() if status == 1]
 
-    model.iteration_bunch(iterations, progress_bar=True)
+    model.iteration_bunch(iterations, progress_bar=False)
 
     for node, status in model.status.items():
         if status not in allowed_states:

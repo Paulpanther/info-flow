@@ -8,12 +8,18 @@ from collections import deque
 
 def networkx_graph_to_adj_list(g: networkx.Graph) -> Dict[int, List[int]]:
     """Transforms a networkx graph to an adj list dict node -> node list"""
-    adj_list = {}
-    for line in networkx.generate_adjlist(g):
-        node, *edges = line.split(" ")
-        adj_list[int(node)] = list(map(int, edges))
-    return adj_list
 
+    # generate_adjlist does not include previous mentioned edges, so a graph 0-1 is noted as
+    # 0 1
+    # 1
+    # The back-edge 1->0 is missing. Therefore we need to add those manually
+    adj_list = {}
+    for source, neighbors in g.adjacency():
+        adj_list[source] = adj_list.get(source, set()).union(set(neighbors))
+        for target in neighbors:
+            adj_list[target] = adj_list.get(target, set()).union({source})
+
+    return adj_list
 
 def get_bfs_tree(adj_list, root) -> Dict[int, List[int]]:
     """Build a bfs tree from root"""
@@ -83,6 +89,8 @@ def rumor_centrality(adj_list, root, use_fact=False):
     for vis in visited:
         visited[vis] = False
 
+    # We do not use the results of this calculation
+    # It is described in the paper, but I dont see its use?
     dfs_down(root)
 
     return r[root]
@@ -94,8 +102,42 @@ def get_rumor_centrality_lookup(adj_list, use_fact=False) -> Dict[int, float]:
 
 
 def get_center_prediction(adj_list, use_fact=False):
-    """Returns the node with the maximum rumor centrality of all nodes"""
-    return max(
-        get_rumor_centrality_lookup(adj_list, use_fact).items(),
-        key=lambda x: x[1],
-    )[0]
+    """Returns the nodes with the maximum rumor centrality of all nodes"""
+    lookup = get_rumor_centrality_lookup(adj_list, use_fact)
+    max_rumor_centrality = max(lookup.values())
+    return [node for node, score in lookup.items() if score == max_rumor_centrality]
+
+
+def test():
+    # Build graph from talk example
+    g = networkx.Graph()
+    g.add_node("A")
+    g.add_node("B")
+    g.add_node("F")
+    g.add_node("G")
+    g.add_node("H")
+    g.add_node("J")
+
+    g.add_edge("A", "B")
+    g.add_edge("A", "F")
+    g.add_edge("A", "G")
+    g.add_edge("A", "H")
+
+    g.add_edge("B", "H")
+    g.add_edge("B", "J")
+
+    g.add_edge("G", "H")
+
+    # All nodes are numbers again
+    mapping = {"A": 1, "B": 2, "F": 3, "G": 4, "H": 5, "J": 6}
+    reversed_mapping = dict([(number, letter) for letter, number in mapping.items()])
+
+    g = networkx.relabel_nodes(g, mapping)
+
+    adj_list = networkx_graph_to_adj_list(g)
+    get_rumor_centrality_lookup(adj_list)
+    get_rumor_centrality_lookup(adj_list, True)
+
+
+if __name__ == "__main__":
+    test()

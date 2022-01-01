@@ -1,4 +1,5 @@
 import networkx as nx
+import plotly.graph_objects as go
 
 
 def generate_nx_graph():
@@ -17,7 +18,6 @@ def compute_node_degrees(G):
 
 
 def plot_nx_graph(G, node_marker=None, node_text=None, node_size=None):
-    import plotly.graph_objects as go
 
     edge_x = []
     edge_y = []
