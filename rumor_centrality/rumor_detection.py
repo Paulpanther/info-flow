@@ -1,12 +1,9 @@
 """Rumor Centrality Score - Implemented from scratch"""
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import networkx
 import math
 from collections import deque
-
-from graph_visualization import plot_nx_graph, compute_node_degrees
-from graph_generator import scale_free
 
 
 def networkx_graph_to_adj_list(g: networkx.Graph) -> Dict[int, List[int]]:
@@ -14,7 +11,7 @@ def networkx_graph_to_adj_list(g: networkx.Graph) -> Dict[int, List[int]]:
     adj_list = {}
     for line in networkx.generate_adjlist(g):
         node, *edges = line.split(" ")
-        adj_list[node] = edges
+        adj_list[int(node)] = list(map(int, edges))
     return adj_list
 
 
@@ -37,7 +34,7 @@ def get_bfs_tree(adj_list, root) -> Dict[int, List[int]]:
     return T
 
 
-def rumor_centrality(adj_list, root):
+def rumor_centrality(adj_list, root, use_fact=False):
     """Calculates the rumor centrality for root on the graph given by adj_list"""
     t = {}
     p = {}
@@ -79,7 +76,10 @@ def rumor_centrality(adj_list, root):
 
     dfs_up(root)
 
-    r[root] = math.factorial(n - 1) / (p[root] / t[root])
+    if use_fact:
+        r[root] = math.factorial(n - 1) / (p[root] / t[root])
+    else:
+        r[root] = t[root] / p[root]
     for vis in visited:
         visited[vis] = False
 
@@ -88,35 +88,14 @@ def rumor_centrality(adj_list, root):
     return r[root]
 
 
-def main():
-
-    nx_g = scale_free(100)
-
-    n_markers, n_text = compute_node_degrees(nx_g)
-    plot_nx_graph(nx_g, n_markers, n_text)
-
-    adj_list = networkx_graph_to_adj_list(nx_g)
-
-    # We could save a lot of lines here by using a map and a max
-    # at the additional cost of O(n)
-    rs = []
-    labels = []
-
-    max_i = 0
-    max_r = 0
-    for v in adj_list:
-        r = rumor_centrality(adj_list, v)
-
-        rs.append(r)
-        labels.append(f"rumor centrality score for {v}: {r}")
-
-        if r > max_r:
-            max_r = r
-            max_i = v
-
-    print(max_i, max_r)
-    plot_nx_graph(nx_g, rs, labels)
+def get_rumor_centrality_lookup(adj_list, use_fact=False) -> Dict[int, float]:
+    """Returns each node of the adj list with its respective rumor centrality in a dict"""
+    return dict(map(lambda v: (v, rumor_centrality(adj_list, v, use_fact)), list(adj_list.keys())))
 
 
-if __name__ == '__main__':
-    main()
+def get_center_prediction(adj_list, use_fact=False):
+    """Returns the node with the maximum rumor centrality of all nodes"""
+    return max(
+        get_rumor_centrality_lookup(adj_list, use_fact).items(),
+        key=lambda x: x[1],
+    )[0]

@@ -1,4 +1,4 @@
-"""Utility to simulate different infection spread dynamics on a graph"""#
+"""Utility to simulate different infection spread dynamics on a graph"""
 
 from typing import List
 
