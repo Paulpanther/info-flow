@@ -1,16 +1,5 @@
-from typing import Dict, List
-
 import networkx as nx
-
-
-def convert_to_nx_graph(adjacency_list: Dict[int, List[int]]):
-    edge_list = []
-
-    for u in adjacency_list:
-        for v in adjacency_list[u]:
-            edge_list.append((u, v))
-
-    return nx.from_edgelist(edge_list)
+import plotly.graph_objects as go
 
 
 def generate_nx_graph():
@@ -28,8 +17,7 @@ def compute_node_degrees(G):
     return node_adjacencies, node_text
 
 
-def plot_nx_graph(G, node_marker=None, node_text=None):
-    import plotly.graph_objects as go
+def plot_nx_graph(G, node_marker=None, node_text=None, node_size=None):
 
     edge_x = []
     edge_y = []
@@ -77,7 +65,7 @@ def plot_nx_graph(G, node_marker=None, node_text=None):
             colorscale='YlGnBu',
             reversescale=True,
             color=[],
-            size=10,
+            size=node_size,
             colorbar=dict(
                 thickness=15,
                 title='Node Connections',

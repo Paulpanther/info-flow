@@ -1,1 +1,9 @@
-networkx
+networkx~=2.6.3
+ndlib~=5.1.1
+igraph~=0.9.8
+six
+
+numpy~=1.21.4
+matplotlib
+plotly
+nbformat~=4.2.0
