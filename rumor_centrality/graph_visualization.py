@@ -80,7 +80,7 @@ def plot_nx_graph(G, node_marker=None, node_text=None, node_size=None):
 
     fig = go.Figure(data=[edge_trace, node_trace],
                     layout=go.Layout(
-                        title='<br>Network graph made with Python',
+                        title='<br>Network graph',
                         titlefont_size=16,
                         showlegend=False,
                         hovermode='closest',
