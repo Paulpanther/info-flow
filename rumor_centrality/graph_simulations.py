@@ -68,6 +68,9 @@ def _run_model(Model, graph: nx.Graph, iterations: int, allowed_states: List[int
     if (iterations < 0 and max_infected_nodes < 0) or (iterations > 0 and max_infected_nodes > 0):
         raise AttributeError("Either limited iterations or limited infections need to be specified")
 
+    if max_infected_nodes > 0 and max_infected_nodes > len(graph.nodes):
+        raise AttributeError("More max_infected_nodes than nodes in Graph")
+
     cfg = ModelConfig.Configuration()
     for key, value in config:
         cfg.add_model_parameter(key, value)
@@ -76,13 +79,15 @@ def _run_model(Model, graph: nx.Graph, iterations: int, allowed_states: List[int
     model.set_initial_status(cfg)
 
     initial_infected = [node for (node, status) in model.status.items() if status == 1]
+    print("Run Model")
 
     if max_infected_nodes < 0:
-        model.iteration_bunch(iterations, progress_bar=False)
+        model.iteration_bunch(iterations, progress_bar=True)
     else:
         # Model simulation with abort if max infected node count is reached
         total_infected = 0
         while total_infected < max_infected_nodes:
+            print(total_infected)
             it_dict = model.iteration()
             node_status_dict = it_dict["status"]
             infected_nodes = [1 for v in node_status_dict.values() if v in allowed_states]
