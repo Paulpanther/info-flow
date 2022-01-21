@@ -1,3 +1,5 @@
+from typing import List
+
 import networkx as nx
 import plotly.graph_objects as go
 
@@ -89,6 +91,41 @@ def plot_nx_graph(G, node_marker=None, node_text=None, node_size=None):
                         yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
                     )
     fig.show()
+
+
+def multiple_histograms(values_each: List[List[float]], names: List[str], x_label: str, y_label: str, sup_title: str, mod=10):
+    from matplotlib import pyplot as plt
+
+    n = len(values_each)
+
+    frequencies = []
+    for i in range(n):
+        values = values_each[i]
+        values = [-1 if v is None else v for v in values]
+        uniq_values = list(set(values))
+        f = dict([(u, values.count(u)) for u in uniq_values])
+        frequencies.append(f)
+
+    fig, axes = plt.subplots(1, n, sharey=True, figsize=(10, 10))
+
+    for i, sim_name in enumerate(names):
+        ax = axes[i] if n > 1 else axes
+        ax.bar(
+            frequencies[i].keys(),
+            frequencies[i].values(),
+            label=sim_name,
+            width=1,
+        )
+
+        ax.set_title(sim_name)
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
+
+        ax.set_xticks([x for x in list(frequencies[i].keys()) if x % mod == 0])
+
+    ax_root = axes[0] if n > 1 else axes
+    ax_root.legend()
+    fig.suptitle(sup_title)
 
 
 if __name__ == '__main__':
