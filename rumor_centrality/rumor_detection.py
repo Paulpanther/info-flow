@@ -5,6 +5,7 @@ import networkx
 import math
 from collections import deque
 from multiprocessing import Pool, Manager
+from decimal import Decimal
 
 
 def networkx_graph_to_adj_list(g: networkx.Graph) -> Dict[int, List[int]]:
@@ -84,7 +85,7 @@ def rumor_centrality(adj_list, root, use_fact=False):
     dfs_up(root)
 
     if use_fact:
-        r[root] = math.factorial(n - 1) / (p[root] / t[root])
+        r[root] = Decimal(math.factorial(n - 1)) / (Decimal(p[root]) / Decimal(t[root]))
     else:
         r[root] = t[root] / p[root]
     for vis in visited:
