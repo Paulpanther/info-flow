@@ -79,7 +79,6 @@ def _run_model(Model, graph: nx.Graph, iterations: int, allowed_states: List[int
     model.set_initial_status(cfg)
 
     initial_infected = [node for (node, status) in model.status.items() if status == 1]
-    print("Run Model")
 
     if max_infected_nodes < 0:
         model.iteration_bunch(iterations, progress_bar=True)
@@ -87,7 +86,6 @@ def _run_model(Model, graph: nx.Graph, iterations: int, allowed_states: List[int
         # Model simulation with abort if max infected node count is reached
         total_infected = 0
         while total_infected < max_infected_nodes:
-            print(total_infected)
             it_dict = model.iteration()
             node_status_dict = it_dict["status"]
             infected_nodes = [1 for v in node_status_dict.values() if v in allowed_states]
