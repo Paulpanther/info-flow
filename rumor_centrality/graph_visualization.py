@@ -17,7 +17,7 @@ def compute_node_degrees(G):
     return node_adjacencies, node_text
 
 
-def plot_nx_graph(G, node_marker=None, node_text=None, node_size=None):
+def plot_nx_graph(G, node_marker=None, node_text=None, node_size=None, layout=nx.spring_layout):
 
     edge_x = []
     edge_y = []
@@ -25,7 +25,7 @@ def plot_nx_graph(G, node_marker=None, node_text=None, node_size=None):
     positions = nx.get_node_attributes(G, 'pos')
 
     if len(positions) == 0:
-        positions = nx.spring_layout(G)
+        positions = layout(G)
     for edge in G.edges():
         # x0, y0 = G.nodes[edge[0]]['pos']
         x0, y0 = positions[edge[0]]
@@ -80,7 +80,7 @@ def plot_nx_graph(G, node_marker=None, node_text=None, node_size=None):
 
     fig = go.Figure(data=[edge_trace, node_trace],
                     layout=go.Layout(
-                        title='<br>Network graph made with Python',
+                        title='<br>Network graph',
                         titlefont_size=16,
                         showlegend=False,
                         hovermode='closest',
