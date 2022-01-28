@@ -1,5 +1,5 @@
 """Utility to simulate different infection spread dynamics on a graph"""
-
+import random
 from typing import List
 
 import networkx as nx
@@ -13,7 +13,8 @@ def si(
         infection_prob: float,
         infections_centers: int,
         max_infected_nodes: int = -1,
-        max_no_change: int = -1
+        max_no_change: int = -1,
+        fill_infection_count: bool = False
 ) -> (nx.Graph, List[int]):
     return _run_model(
         SIModel,
@@ -22,6 +23,7 @@ def si(
         [1],
         max_infected_nodes,
         max_no_change,
+        fill_infection_count,
         ("beta", infection_prob),
         ("fraction_infected", infections_centers / graph.number_of_nodes()))
 
@@ -168,6 +170,7 @@ def _run_model(
         allowed_states: List[int],
         max_infected_nodes: int,
         max_no_change: int,
+        fill_infection_count: bool,
         *config: (str, any)
 ) -> (nx.Graph, List[int]):
     """
@@ -196,6 +199,8 @@ def _run_model(
     if max_infected_nodes < 0:
         model.iteration_bunch(iterations, progress_bar=True)
         status_dict = model.status.items()
+        node_status = [(node, state in allowed_states) for (node, state) in status_dict]
+
     else:
         # Model simulation will abort if max infected node count is reached
         total_infected = 0
@@ -221,8 +226,32 @@ def _run_model(
                 # Only update status if requirement is met
                 status_dict = model.status.items()
 
-    for node, status in status_dict:
-        if status not in allowed_states:
+        node_status = [(node, state in allowed_states) for (node, state) in status_dict]
+
+        if fill_infection_count:
+            node_status = _fill_missing_infections(graph, node_status, max_infected_nodes)
+
+    for node, status in node_status:
+        if not status:
             graph.remove_node(node)
 
     return graph, initial_infected
+
+
+def _fill_missing_infections(g: nx.Graph, node_status, infection_goal: int):
+    infected_nodes = [node for node, status in node_status if status]
+    missing_infections = int(infection_goal - len(infected_nodes))
+
+    if missing_infections <= 0:
+        return node_status
+
+    # All neighbors of infected nodes that are not infected
+    infection_neighbors = list(set(very_ugly_flatten([list(g.neighbors(node)) for node in infected_nodes])) - set(infected_nodes))
+    random.shuffle(infection_neighbors)
+    newly_infected = infection_neighbors[0:min(missing_infections, len(infection_neighbors))]
+
+    return [(node, True if node in newly_infected else status) for (node, status) in node_status]
+
+
+def very_ugly_flatten(l: List[List[any]]) -> List[any]:
+    return [item for sublist in l for item in sublist]
