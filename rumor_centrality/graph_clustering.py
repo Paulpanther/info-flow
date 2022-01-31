@@ -1,8 +1,9 @@
 import random
 from collections import defaultdict
-from typing import List, Dict, Tuple, Iterator
+from typing import List, Dict, Tuple, Iterator, Any, Union
 
 import networkx as nx
+from networkx import is_connected
 from networkx.algorithms import single_source_shortest_path_length
 from networkx.algorithms.distance_measures import diameter
 from networkx.algorithms.distance_measures import periphery
@@ -36,53 +37,78 @@ def get_cluster_reprs(g: nx.Graph, number_clusters: int) -> List[int]:
 # TODO: make all clusters grow equally from each seed
 
 def assign_all_nodes_cluster(g: nx.Graph, cluster_reprs: List[int]) -> Dict[int, int]:
-    dists = [single_source_shortest_path_length(g, cluster_repr) for cluster_repr in cluster_reprs]
+    dists = {cluster_repr: single_source_shortest_path_length(g, cluster_repr) for cluster_repr in cluster_reprs}
+    packed_cluster_labels = {cluster_label: i for i, cluster_label in enumerate(set(cluster_reprs))}
     cluster_assign = {}
 
     for node in g:
-        min_dist_cluster = 0
-        nodes = list(range(len(cluster_reprs)))
+        min_dist_cluster = None
+        nodes = cluster_reprs.copy()
         random.shuffle(nodes)
         for idx in nodes:
-            if dists[idx][node] < dists[min_dist_cluster][node]:
+            if min_dist_cluster is None or dists[idx][node] < dists[min_dist_cluster][node]:
                 min_dist_cluster = idx
 
-        cluster_assign[node] = min_dist_cluster
+        cluster_assign[node] = packed_cluster_labels[min_dist_cluster]
 
     return cluster_assign
 
 
-def cluster_graph(g: nx.Graph, number_clusters: int) -> List[int]:
+def cluster_graph(g: nx.Graph, number_clusters: int) -> Dict[int, int]:
     reprs = get_cluster_reprs(g, number_clusters)
     assignm = assign_all_nodes_cluster(g, reprs)
-    return list(assignm.values())
+    return assignm
 
 
-def get_induced_subgraph(adj_list: Dict[int, List[int]], subgraph_assignments: List[int]) -> List[Dict[int, List[int]]]:
-    return [
-        {
-            cur_node: [next_node for next_node in adj_list[cur_node] if subgraph_assignments[next_node] == i]
-            for cur_node in adj_list if subgraph_assignments[cur_node] == i
-        } for i in set(subgraph_assignments)
-    ]
+def get_induced_subgraph(adj_list: Dict[int, List[int]], subgraph_assignments: Dict[int, int]) -> List[
+    Dict[int, List[int]]]:
+    subgraphs = []
+
+    for i in set(subgraph_assignments.values()):
+        current_subgraph = {}
+        for cur_node in adj_list:
+            current_subgraph[cur_node] = []
+            if subgraph_assignments[cur_node] != i:
+                continue
+
+            for next_node in adj_list[cur_node]:
+                if subgraph_assignments[next_node] != i:
+                    continue
+                current_subgraph[cur_node].append(next_node)
+
+        subgraphs.append(current_subgraph)
+
+    return subgraphs
 
 
-def get_node_indices_by_value(subgraph_assignments: List[int]) -> List[List[int]]:
+def get_node_indices_by_value(subgraph_assignments: Dict[int, int]) -> defaultdict[Any, list]:
     clusters = defaultdict(list)
-    for i, cluster_num in enumerate(subgraph_assignments):
-        clusters[cluster_num].append(i)
+    for node, cluster_num in subgraph_assignments.items():
+        clusters[cluster_num].append(node)
 
     return clusters
 
 
-def get_max_infection_radius(gs: Iterator[nx.Graph]) -> int:
+def get_max_infection_radius(gs: Union[Iterator[nx.Graph], Iterator[Dict[int, List[int]]]]) -> int:
     # for g in gs:
+    #
     #     print(f"g : {diameter(g)}")
     # print(list(map(diameter, gs)))
-    return max(map(lambda x: diameter(nx.Graph(x)), gs))
+    return 5
+    # return max(map(lambda x: diameter(nx.Graph(get_edge_list_from_adj_list(x))), gs))
 
 
-def build_cluster(g: nx.Graph, number_clusters: int) -> Tuple[int, List[List[int]], List[int]]:
+def get_edge_list_from_adj_list(adj_list: Dict[int, List[int]]) -> List[Tuple[int, int]]:
+    edge_list = []
+
+    for cur_node in adj_list:
+        for next_node in adj_list[cur_node]:
+            edge_list.append((cur_node, next_node))
+            edge_list.append((next_node, cur_node))
+    return edge_list
+
+
+def build_cluster(g: nx.Graph, number_clusters: int) -> tuple[int, list[dict[int, list[int]]], dict[int, int]]:
     assignm = cluster_graph(g, number_clusters)
     adj_list = networkx_graph_to_adj_list(g)
     subgraphs = get_induced_subgraph(adj_list, assignm)
@@ -96,7 +122,7 @@ def build_cluster(g: nx.Graph, number_clusters: int) -> Tuple[int, List[List[int
 
 
 def multiple_rumor_source_prediction(g: nx.Graph, max_num_clusters: int = 20,
-                                     estimate_num_cluster: bool = False) -> Tuple[List[int], List[int]]:
+                                     estimate_num_cluster: bool = False) -> Tuple[List[int], Dict[int, int]]:
     if estimate_num_cluster:
         # argmax wk - wk+1 - (wk+1 - wk+2)
         clusters_dists = [build_cluster(g, k) for k in range(max_num_clusters)]
@@ -117,13 +143,13 @@ def multiple_rumor_source_prediction(g: nx.Graph, max_num_clusters: int = 20,
         return subgraphs_rumor_centers, assignm
 
 
-def visualise_cluster_graph(g: nx.Graph, rumor_centers: List[List[int]], assignment: List[int],
+def visualise_cluster_graph(g: nx.Graph, rumor_centers: List[List[int]], assignment: Dict[int, int],
                             layout=nx.spring_layout) -> None:
-    max_assignment = max(assignment) + 1
-    labels: List[int] = assignment.copy()
+    max_assignment = max(assignment.values()) + 1
+    labels: Dict = assignment.copy()
     for i, r_cs in enumerate(rumor_centers):
         for r_c in r_cs:
             labels[r_c] = f"{labels[r_c]} (rumour center)"
             assignment[r_c] = i + max_assignment
 
-    plot_nx_graph(g, assignment, labels, layout=layout)
+    plot_nx_graph(g, list(assignment.values()), list(labels.values()), layout=layout)
