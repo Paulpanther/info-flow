@@ -4,6 +4,8 @@ from typing import Dict, List, Tuple
 import networkx
 import math
 from collections import deque
+from multiprocessing import Pool, Manager
+from decimal import Decimal
 
 
 def networkx_graph_to_adj_list(g: networkx.Graph) -> Dict[int, List[int]]:
@@ -84,7 +86,7 @@ def rumor_centrality(adj_list, root, use_fact=False):
     dfs_up(root)
 
     if use_fact:
-        r[root] = math.factorial(n - 1) / (p[root] / t[root])
+        r[root] = Decimal(math.factorial(n - 1)) / (Decimal(p[root]) / Decimal(t[root]))
     else:
         r[root] = t[root] / p[root]
     for vis in visited:
@@ -97,14 +99,30 @@ def rumor_centrality(adj_list, root, use_fact=False):
     return r[root]
 
 
-def get_rumor_centrality_lookup(adj_list, use_fact=False) -> Dict[int, float]:
+def parallel_multiprocessing_wrapper(adj_list, root, use_fact):
+    return root, rumor_centrality(adj_list, root, use_fact)
+
+
+def get_rumor_centrality_lookup(adj_list, use_fact=False, threads=1) -> Dict[int, float]:
     """Returns each node of the adj list with its respective rumor centrality in a dict"""
+    if threads < 1:
+        raise ValueError("At least one thread is needed to run!")
+
+    if threads > 1:
+        m = Manager()
+        adj_proxy = m.dict(adj_list)
+        args = [(adj_proxy, v, use_fact) for v in adj_list.keys()]
+        with Pool(threads) as p:
+            rumor_centrality_lookup = p.starmap(parallel_multiprocessing_wrapper, args)
+
+        return dict(rumor_centrality_lookup)
+
     return dict(map(lambda v: (v, rumor_centrality(adj_list, v, use_fact)), list(adj_list.keys())))
 
 
-def get_center_prediction(adj_list, use_fact=False):
+def get_center_prediction(adj_list, use_fact=False, threads=1):
     """Returns the nodes with the maximum rumor centrality of all nodes"""
-    lookup = get_rumor_centrality_lookup(adj_list, use_fact)
+    lookup = get_rumor_centrality_lookup(adj_list, use_fact, threads)
     max_rumor_centrality = max(lookup.values())
     return [node for node, score in lookup.items() if score == max_rumor_centrality]
 
