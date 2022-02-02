@@ -25,7 +25,7 @@ def get_cluster_reprs(g: nx.Graph, number_clusters: int) -> List[int]:
         # select node which is farthest away from currently selected nodes
         # sum distances from each node from set?
         max_node = sorted(summed_dists.items(), key=lambda x: x[1], reverse=True)[0]
-        print(f"got node {max_node[0]} with dist {max_node[1]} to cluster centers")
+        # print(f"got node {max_node[0]} with dist {max_node[1]} to cluster centers")
         cluster_reprs.append(max_node[0])
         dist_new = single_source_shortest_path_length(g, cluster_reprs[1])
         summed_dists = {k: dist_x.get(k, 0) + dist_y.get(k, 0) for k in
