@@ -35,7 +35,8 @@ def sis(
         recovery_prob: float,
         infections_centers: int,
         max_infected_nodes: int = -1,
-        max_no_change: int = -1
+        max_no_change: int = -1,
+        fill_infection_count: bool = False
 ) -> (nx.Graph, List[int]):
     return _run_model(
         SISModel,
@@ -44,6 +45,7 @@ def sis(
         [1],
         max_infected_nodes,
         max_no_change,
+        fill_infection_count,
         ("beta", infection_prob),
         ("lambda", recovery_prob),
         ("fraction_infected", infections_centers / graph.number_of_nodes()))
@@ -57,7 +59,8 @@ def sir(
         infections_centers: int,
         max_infected_nodes: int = -1,
         recovered_are_infected=True,
-        max_no_change: int = -1
+        max_no_change: int = -1,
+        fill_infection_count: bool = False
 ) -> (nx.Graph, List[int]):
     return _run_model(
         SIRModel,
@@ -66,6 +69,7 @@ def sir(
         [1, 2] if recovered_are_infected else [1],
         max_infected_nodes,
         max_no_change,
+        fill_infection_count,
         ("beta", infection_prob),
         ("gamma", removal_prob),
         ("fraction_infected", infections_centers / graph.number_of_nodes()))
