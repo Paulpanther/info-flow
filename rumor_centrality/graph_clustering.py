@@ -122,7 +122,7 @@ def build_cluster(g: nx.Graph, number_clusters: int) -> tuple[int, list[dict[int
 
 
 def multiple_rumor_source_prediction(g: nx.Graph, max_num_clusters: int = 20,
-                                     estimate_num_cluster: bool = False) -> Tuple[List[int], Dict[int, int]]:
+                                     estimate_num_cluster: bool = False) -> Tuple[List[List[int]], Dict[int, int]]:
     if estimate_num_cluster:
         # argmax wk - wk+1 - (wk+1 - wk+2)
         clusters_dists = [build_cluster(g, k) for k in range(max_num_clusters)]
