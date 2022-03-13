@@ -19,7 +19,7 @@ from rumor_centrality.graph_generator import internet, us_power_grid, scale_free
 from time import time
 from multiprocessing import Pool
 from typing import List, Tuple, Dict
-from rumor_centrality.graph_simulations import si
+from rumor_centrality import graph_simulations
 from rumor_centrality.graph_visualization import plot_nx_graph
 import random
 import pickle
@@ -38,12 +38,27 @@ graph_types = {
     "internet": internet,
 }
 
+
+infected_nodes_percent = 0.3
+sim_si = lambda g: graph_simulations.si(g, -1, 0.3, 1, int(len(g.nodes) * infected_nodes_percent), 10, True)
+sim_sis = lambda g: graph_simulations.sis(g, -1, 0.3, 0.1, 1, int(len(g.nodes) * infected_nodes_percent), 10, True)
+sim_sir = lambda g: graph_simulations.sir(g, -1, 0.3, 0.1, 1, int(len(g.nodes) * infected_nodes_percent), 10, True)
+
+simulations = {
+    "si": sim_si,
+    "sis": sim_sis,
+    "sir": sim_sir,
+}
+
 # Choose Graph
-_, graph_name, output_dir = sys.argv
+_, graph_name, output_dir, simulation = sys.argv
 if graph_name not in graph_types.keys():
     exit("INVALID GRAPH NAME!")
 
-output_dir = join(output_dir, graph_name)
+if simulation not in simulations.keys():
+    exit("INVALID SIMULATION NAME")
+
+output_dir = join(output_dir, simulation, graph_name)
 makedirs(output_dir, exist_ok=True)
 
 # Available Metrics
@@ -61,7 +76,7 @@ graph_callback = graph_types[graph_name]
 sample_size = 100
 
 percent_radius = [0.0, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]  # Percent of nodes to remove
-infected_nodes_percent = 0.3
+
 
 graph_size = len(graph_callback().nodes)
 
@@ -120,15 +135,17 @@ def get_experiment_graph(g, percent_missing):
 
 
 def simulate_remove_predict(p_r):
-    infected_graph, centers = si(
-        main_ref_graph,
-        infection_prob=0.2,
-        infections_centers=1,
-        iterations=-1,
-        max_infected_nodes=int(infected_nodes_percent * len(main_ref_graph.nodes)),
-    )
+    infected_graph, centers = simulations[simulation](main_ref_graph)
 
+    if nx.is_empty(infected_graph):
+        return None
     ex_graph, removed_nodes = get_experiment_graph(infected_graph, p_r)
+
+    if nx.is_empty(ex_graph):
+        return None
+
+    if not nx.is_connected(ex_graph):
+        return None
 
     predicted_centers = {}
     for metric_name, metric_callback in metrics.items():
@@ -145,7 +162,7 @@ def simulate_remove_predict(p_r):
 
 results = {}
 for p_r in tqdm(percent_radius):
-    with Pool(sample_size) as threads:
+    with Pool(3) as threads:
         results[p_r] = threads.map(simulate_remove_predict, [p_r] * sample_size)
 
 
@@ -174,7 +191,6 @@ def get_best_hop_distance(g, original_centers, predicted_centers):
                 best_pair = (o_c, p_c)
     return best_pair, best_distance
 
-
 # In[15]:
 
 
@@ -185,12 +201,20 @@ def get_all_hop_distances(g, original_centers, predicted_centers):
             distances.append(len(shortest_paths[o_c][p_c]))
     return distances
 
+from statistics import median
+
+def get_median_hop_distance(g, original_centers, predicted_centers):
+    return median(get_all_hop_distances(g, original_centers, predicted_centers))
+
 
 center_results = {}
 for k, v in results.items():
     predicted_centers = []
     for _r in v:
-        predicted_centers.append((_r["predicted_centers"], _r["real_centers"]))
+        if _r is None:
+            predicted_centers.append((None, None))
+        else:
+            predicted_centers.append((_r["predicted_centers"], _r["real_centers"]))
     center_results[k] = predicted_centers
 
 
@@ -209,21 +233,24 @@ for metric_name in metrics.keys():
         for i, centers in tqdm(enumerate(values)):
             predicted_centers = centers[0]
             real_centers = centers[1]
+            if predicted_centers is None or real_centers is None:
+                hop_distance_freq[-1] = hop_distance_freq.get(-1, 0) + 1
+                reference_map.append((p_r, i, -1))
+            else:
+                predicted_centers = predicted_centers[metric_name]
+                # best_pair, best_distance = get_best_hop_distance(main_ref_graph, real_centers, predicted_centers)
+                median_distance = get_median_hop_distance(main_ref_graph, real_centers, predicted_centers)
+                hop_distance_freq[median_distance] = hop_distance_freq.get(median_distance, 0) + 1
 
-            predicted_centers = predicted_centers[metric_name]
-            best_pair, best_distance = get_best_hop_distance(main_ref_graph, real_centers, predicted_centers)
-            hop_distance_freq[best_distance] = hop_distance_freq.get(best_distance, 0) + 1
-
-            reference_map.append((p_r, i, best_distance))
+                reference_map.append((p_r, i, median_distance))
 
         hop_distance_freq_by_p_r[p_r] = hop_distance_freq
     hop_distance_freq_by_p_r_by_metric[metric_name] = hop_distance_freq_by_p_r
 
 if output_dir is not None:
-    with open(join(output_dir, name_builder("hop_distance_freq_by_p_r")), "wb") as f:
-        pickle.dump(hop_distance_freq_by_p_r, f)
-    with open(join(output_dir, name_builder("reference_map")), "wb") as f:
-        pickle.dump(reference_map, f)
+    with open(join(output_dir, name_builder("hop_distance_freq_by_p_r_by_metric")), "wb") as f:
+        pickle.dump(hop_distance_freq_by_p_r_by_metric, f)
+
 
 def rgba(minimum, maximum, value):
     minimum, maximum = float(minimum), float(maximum)
