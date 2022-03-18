@@ -3,9 +3,7 @@ from collections import defaultdict
 from typing import List, Dict, Tuple, Iterator, Any, Union
 
 import networkx as nx
-from networkx import is_connected
 from networkx.algorithms import single_source_shortest_path_length
-from networkx.algorithms.distance_measures import diameter
 from networkx.algorithms.distance_measures import periphery
 
 from rumor_centrality.graph_visualization import plot_nx_graph
@@ -141,6 +139,34 @@ def multiple_rumor_source_prediction(g: nx.Graph, max_num_clusters: int = 20,
         subgraphs_rumor_centers = list(map(lambda x: get_center_prediction(x), subgraphs))
 
         return subgraphs_rumor_centers, assignm
+
+
+def get_biggest_connected_component_subgraph_from_adj_list(adj_list: dict[int, list[int]]) -> nx.Graph:
+    G = nx.Graph(get_edge_list_from_adj_list(adj_list))
+    for node in adj_list:
+        G.add_node(node)
+    return G.subgraph(max(nx.connected_components(G), key=len))
+
+
+def multiple_rumor_source_prediction_metric(
+        g: nx.Graph,
+        max_num_clusters: int = 20,
+        center_prediction_callback=get_center_prediction,
+        callback_runs_on_nxgraph=False,
+) -> Tuple[List[List[int]], Dict[int, int]]:
+    if max_num_clusters == 1:
+        subgraphs, assignm = [networkx_graph_to_adj_list(g)], None
+    else:
+        max_infection_radius, subgraphs, assignm = build_cluster(g, max_num_clusters)
+
+    if callback_runs_on_nxgraph:
+        subgraphs_rumor_centers = list(map(lambda x: center_prediction_callback(
+            get_biggest_connected_component_subgraph_from_adj_list(x)
+        ), subgraphs))
+    else:
+        subgraphs_rumor_centers = list(map(lambda x: center_prediction_callback(x), subgraphs))
+
+    return subgraphs_rumor_centers, assignm
 
 
 def visualise_cluster_graph(g: nx.Graph, rumor_centers: List[List[int]], assignment: Dict[int, int],

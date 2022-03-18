@@ -16,6 +16,11 @@ def si(
         max_no_change: int = -1,
         fill_infection_count: bool = False
 ) -> (nx.Graph, List[int]):
+
+    nodes = list(graph.nodes.keys())
+    random.shuffle(nodes)
+    infected_nodes = nodes[:infections_centers]
+
     return _run_model(
         SIModel,
         graph,
@@ -25,7 +30,9 @@ def si(
         max_no_change,
         fill_infection_count,
         ("beta", infection_prob),
-        ("fraction_infected", infections_centers / graph.number_of_nodes()))
+        # ("fraction_infected", infections_centers / graph.number_of_nodes()))
+        Infected=infected_nodes,
+    )
 
 
 def sis(
@@ -175,7 +182,8 @@ def _run_model(
         max_infected_nodes: int,
         max_no_change: int,
         fill_infection_count: bool,
-        *config: (str, any)
+        *config: (str, any),
+        **kwargs,
 ) -> (nx.Graph, List[int]):
     """
         Gets a graph, performs simulation of infections spread with given model.
@@ -192,6 +200,8 @@ def _run_model(
         raise AttributeError("More max_infected_nodes than nodes in Graph")
 
     cfg = ModelConfig.Configuration()
+    if kwargs.get("Infected", None) is not None:
+        cfg.add_model_initial_configuration("Infected", kwargs.get("Infected"))
     for key, value in config:
         cfg.add_model_parameter(key, value)
 
