@@ -24,6 +24,16 @@ def networkx_graph_to_adj_list(g: networkx.Graph) -> Dict[int, List[int]]:
     return adj_list
 
 
+def get_edge_list_from_adj_list(adj_list: Dict[int, List[int]]) -> List[Tuple[int, int]]:
+    edge_list = []
+
+    for cur_node in adj_list:
+        for next_node in adj_list[cur_node]:
+            edge_list.append((cur_node, next_node))
+            edge_list.append((next_node, cur_node))
+    return edge_list
+
+
 def get_bfs_tree(adj_list, root) -> Dict[int, List[int]]:
     """Build a bfs tree from root"""
     queue = deque([root])
