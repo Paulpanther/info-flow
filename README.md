@@ -19,10 +19,11 @@ Each step of the process creates some data usefull for our research:
 
 The described process and the data created can be reproduced with the `missing_experiment.py` script:
 ```
-python3 missing_experiment.py diffusion_dynamic output_dir graph 
+python3 missing_experiment.py graph output_dir diffusion_dynamic 
 ```
-The options for `diffusion_dynamic` are: `si`, `sis`, and `sir` (Note that we only use `si`).
+
+The options for `graph` are: `synthetic_internet_100`, `synthetic_internet_1000`, `scale_free_100`, `scale_free_1000`, `us_power_grid`, and `internet` (Note that we only use `synthetic_internet_1000`, `scale_free_1000` and `us_power_grid`).
 
 You can freely choose the output directory, if it does not exist, the script will create it.
 
-The options for `graph` are: `synthetic_internet_100`, `synthetic_internet_1000`, `scale_free_100`, `scale_free_1000`, `us_power_grid`, and `internet` (Note that we only use `synthetic_internet_1000`, `scale_free_1000` and `us_power_grid`).
+The options for `diffusion_dynamic` are: `si`, `sis`, and `sir` (Note that we only use `si`).
