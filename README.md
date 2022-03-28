@@ -36,7 +36,7 @@ There are 5 files per run, all identified by the `{data_name}` attribute:
 3. `main_ref_graph__[...]`: This is a ![pickle](https://docs.python.org/3/library/pickle.html) file containing the networkx graph object of the base graph, the infection simulations were run on. This is important, as synthetic graphs are not fixed to a seed, and change for each run of the script.
 4. `results__[...]`: The main experiment data. A pickle file, containing a dictionary, mapping percent missing to a list of all sample results. Each sample result contains the original sources (`real_centers`), the reduced infected graph (`ex_graph`), the nodes that were removed to create `ex_graph` (`removed_nodes`) and finally `predicted_centers`, which contains a dictionary with a key for each metric. In this dictionary each metric maps to a list of all the nodes, that were detected as potential information flow sources.
 
-You can use the `Normalize and Compare Missing Data Results.ipynb` notebook to read in the results of the script, withour parsing it manually. This notebook also contains logic to normalize and visualize our results, exactly the same way we used for creating our report.
+You can use the `EDA of Missing Data Experiments.ipynb` notebook to read in the results of the script, without parsing manually. This notebook also contains logic to normalize and visualize our results, exactly the same way we used for creating our report.
 
 
 
