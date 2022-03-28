@@ -27,3 +27,16 @@ The options for `graph` are: `synthetic_internet_100`, `synthetic_internet_1000`
 You can freely choose the output directory, if it does not exist, the script will create it.
 
 The options for `diffusion_dynamic` are: `si`, `sis`, and `sir` (Note that we only use `si`).
+
+The script will create a folder for the dynamic you chose and a sub-folder for the chosen graph (eg. `output_dir/si/scale_free_100`). In this folder you will find the results of the computation. To better separate the files of different experiments, the results are named after the following schema:
+`{data_name}__config_graph_{graph}_nodes_{graph_size}_samples_{sample_size}_`
+There are 5 files per run, all identified by the `{data_name}` attribute:
+1. `bar__[...]`: A hist plot for each of the four metrics. Each hist visualizes the frequencies of hop distances from predicted source to original source, dependent on how many nodes were removed. Hop Distance on x, missing percent as data.
+2. `stacked_bar__[...]`: Contains the same data as `bar__[...]` but visualizes as stacked bar plot, with missing percent on x and the hop distance distribution as plotted data.
+3. `main_ref_graph__[...]`: This is a ![pickle](https://docs.python.org/3/library/pickle.html) file containing the networkx graph object of the base graph, the infection simulations were run on. This is important, as synthetic graphs are not fixed to a seed, and change for each run of the script.
+4. `results__[...]`: The main experiment data. A pickle file, containing a dictionary, mapping percent missing to a list of all sample results. Each sample result contains the original sources (`real_centers`), the reduced infected graph (`ex_graph`), the nodes that were removed to create `ex_graph` (`removed_nodes`) and finally `predicted_centers`, which contains a dictionary with a key for each metric. In this dictionary each metric maps to a list of all the nodes, that were detected as potential information flow sources.
+
+You can use the `Normalize and Compare Missing Data Results.ipynb` notebook to read in the results of the script, withour parsing it manually. This notebook also contains logic to normalize and visualize our results, exactly the same way we used for creating our report.
+
+
+
