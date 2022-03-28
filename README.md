@@ -63,7 +63,7 @@ There are 5 files per run, all identified by the `{data_name}` attribute:
    data.
 2. `stacked_bar__[...]`: Contains the same data as `bar__[...]` but visualizes as stacked bar plot, with missing percent
    on x and the hop distance distribution as plotted data.
-3. `main_ref_graph__[...]`: This is a ![pickle](https://docs.python.org/3/library/pickle.html) file containing the
+3. `main_ref_graph__[...]`: This is a [pickle](https://docs.python.org/3/library/pickle.html) file containing the
    networkx graph object of the base graph, the infection simulations were run on. This is important, as synthetic
    graphs are not fixed to a seed, and change for each run of the script.
 4. `results__[...]`: The main experiment data. A pickle file, containing a dictionary, mapping percent missing to a list
@@ -107,7 +107,7 @@ This runs the experiment on the graphs `synthetic_internet_10000`, `scale_free_1
 each experiment 100 times.
 
 The output will be written to the `<output_dir>` folder in form of
-a ![pickle](https://docs.python.org/3/library/pickle.html) file containing a Dictionary for each run containing:
+a [pickle](https://docs.python.org/3/library/pickle.html) file containing a Dictionary for each run containing:
 
 - the `hops` (list of hops)
 - `graph_normalized_hops`
