@@ -4,13 +4,16 @@ Part of the Information Flow Seminar in the Winter Term 2021/2022 at HPI.
 
 In this repository, you can find:
 
-1. An open-source python implementation of [Rumor Centrality](https://dspace.mit.edu/handle/1721.1/63150) in `rumor_centrality.rumor_detection.py`
+1. An open-source python implementation of [Rumor Centrality](https://dspace.mit.edu/handle/1721.1/63150)
+   in `rumor_centrality.rumor_detection.py`
 2. Easy graph generation using networkx in `rumor_centrality.graph_generator.py`
 3. Easy infection simulation using ndlib in `rumor_centrality.graph_simulations.py`
 4. Notebooks and code to run experiments with different combination of graphs, spreading behavior, and source detection
    algorithms (mainly `TopologyMatrix.ipynb`)
-5. Notebooks and code to experiment with missing values in source detection (`missing_experiment.py` and `Normalize and Compare Missing Data Results.ipynb`)
-6. Notebooks and code to experiment with multiple sources (`multiple_centers_experiment.py` and the `Multiple Rumor Centers` notebooks)
+5. Notebooks and code to experiment with missing values in source detection (`missing_experiment.py`
+   and `EDA of Missing Data Experiments.ipynb`)
+6. Notebooks and code to experiment with multiple sources (`multiple_centers_experiment.py` and
+   the `Multiple Rumor Centers` notebooks)
 
 ## Missing Node Experiments
 
@@ -69,9 +72,9 @@ There are 5 files per run, all identified by the `{data_name}` attribute:
    finally `predicted_centers`, which contains a dictionary with a key for each metric. In this dictionary each metric
    maps to a list of all the nodes, that were detected as potential information flow sources.
 
-You can use the `Normalize and Compare Missing Data Results.ipynb` notebook to read in the results of the script,
-withour parsing it manually. This notebook also contains logic to normalize and visualize our results, exactly the same
-way we used for creating our report.
+You can use the `EDA of Missing Data Experiments.ipynb` notebook to read in the results of the script, without parsing
+manually. This notebook also contains logic to normalize and visualize our results, exactly the same way we used for
+creating our report.
 
 ## Multiple Rumor Centers
 
@@ -120,8 +123,8 @@ Instead of the script, you can also use the notebook `Multiple Rumor Centers - E
 experiment. The main method for this can also be found in `rumor_centrality.experiment.py`
 
 Using the pickled results file, you can use the `Multiple Rumor Centers Analysis.ipynb` notebook to analyze your
-results.
-
+results. This performs the necessary data cleaning and preparation as well as visualization to get the same results as
+seen in our report.
 
 
 
