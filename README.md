@@ -127,4 +127,11 @@ results. This performs the necessary data cleaning and preparation as well as vi
 seen in our report.
 
 
+## Setup
 
+To run the code here, you need at least Python 3.6 and then install the requirements in `requirements.txt`.
+Usage of a virtual environment is encouraged.
+
+```
+pip install -r requirements.txt
+```
