@@ -15,6 +15,17 @@ In this repository, you can find:
 6. Notebooks and code to experiment with multiple sources (`multiple_centers_experiment.py` and
    the `Multiple Rumor Centers` notebooks)
 
+
+## Setup
+
+To run the code here, you need at least Python 3.6 and then install the requirements in `requirements.txt`.
+Usage of a virtual environment is encouraged.
+
+```
+pip install -r requirements.txt
+```
+
+
 ## Missing Node Experiments
 
 While collecting the status of nodes of an information spread, false negatives can occur. This leads to actually
@@ -125,13 +136,3 @@ experiment. The main method for this can also be found in `rumor_centrality.expe
 Using the pickled results file, you can use the `Multiple Rumor Centers Analysis.ipynb` notebook to analyze your
 results. This performs the necessary data cleaning and preparation as well as visualization to get the same results as
 seen in our report.
-
-
-## Setup
-
-To run the code here, you need at least Python 3.6 and then install the requirements in `requirements.txt`.
-Usage of a virtual environment is encouraged.
-
-```
-pip install -r requirements.txt
-```
