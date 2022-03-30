@@ -26,6 +26,16 @@ pip install -r requirements.txt
 ```
 
 
+## Comparison of Centrality Metrics in Different Scenarios
+
+The Notebook `TopologyMatrix.ipynb` visualizes a comparison between `Rumor Centrality`, `Distance Centrality`, `Betweenness Centrality`, and `Jordan Centrality` on Small World, Scale Free, Synthetic Internet and US Power Grid graphs infected with SI, SIS and SIR to the infection sizes of 10, 100, 200, 300, 400, 500, 600, 700, 800 and 900 nodes. The predictions are evaluated using Mean Diameter Normalize Hop Distance.
+
+The second cell of the Notebook contains the parameters for the Dynamics, Predictiors, Infections Counts, Graphs and Amount of Repetitions. All parameters can be changed there and new dynamics, graphs and predictors can be added.
+
+The following cells describe the process of generating, simulating and predicting. Because the process take a long time, it can be manually subdivided into smaller steps and the partial results can be stored and loaded using the `save` and `load` functions. 
+
+The last cell renders the matrix. Here some visualization parameters can be changed, like which data to show, the tick size and data range.
+
 ## Missing Node Experiments
 
 While collecting the status of nodes of an information spread, false negatives can occur. This leads to actually
